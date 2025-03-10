@@ -4,10 +4,10 @@ const { VueLoaderPlugin } = require('vue-loader');
 Encore
     .setOutputPath('public/build')
     .setPublicPath('/build')
-    .addEntry('app', './assets/app.js')
+    .addEntry('app', '/assets/app.js')
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
-    .enableVueLoader()  // Ativa suporte ao Vue
+    .enableVueLoader()  
     .enableSingleRuntimeChunk() 
     .addPlugin(new VueLoaderPlugin());
 

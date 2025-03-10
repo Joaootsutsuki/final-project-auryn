@@ -7,7 +7,12 @@
     </head>
     <body>
         {% block body %}{% endblock %}
-        <script src="{{ asset('build/app.js') }}"></script>
+
+        <div id="app"></div>
+
+        {{ encore_entry_script_tags('app') }}
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
         {% block javascripts %}{% endblock %}
     </body>
 </html>

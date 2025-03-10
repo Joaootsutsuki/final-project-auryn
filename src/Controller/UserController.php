@@ -36,14 +36,16 @@ class UserController extends AbstractController
             return $this->json(['erro' => 'Todos os campos são obrigatórios'], 400);
         }
 
+        $dataNascimento = \DateTime::createFromFormat('d/m/Y', $dados['nascimento']);
 
         $usuario = new User();
         $usuario->setNome($dados['nome']);
         $usuario->setTelefone(preg_replace('/[^0-9]/', '', $dados['telefone'])); // Deixe apenas números 49912345678
-        $usuario->setNascimento(new \DateTime($dados['nascimento'])); // Convertendo string para DateTime
         $usuario->setEmail($dados['email']);
         $usuario->setCpf(preg_replace('/[^0-9]/', '', $dados['cpf'])); // Deixe apenas números 11122233344
 
+        $usuario->setNascimento($dataNascimento); 
+        
         // Hash da senha
         $usuario->setSenha(password_hash($dados['senha'], PASSWORD_DEFAULT));
 
