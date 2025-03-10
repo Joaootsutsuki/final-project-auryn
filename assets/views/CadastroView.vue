@@ -1,22 +1,18 @@
 <template>
-  <div>
-
-    <nav class="navbar navbar-dark bg-mynav">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">My App</a>
-      </div>
-    </nav>
-
+  <main>
     <div class="container">
       <div class="d-flex bd-highlight mb-3">
         <div class="me-auto p-2 bd-highlight">
           <h2>Usuários</h2>
         </div>
         <div class="p-2 bd-highlight">
-          <button type="button" class="btn btn-secondary" @click="showUserCreateBox">Criar novo usuário</button>
+          <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#userModal">
+            Criar novo usuário
+          </button>
         </div>
       </div>
 
+      <!-- Tabela de Usuários-->
       <div class="table-responsive">
         <table class="table">
           <thead>
@@ -28,21 +24,19 @@
               <th scope="col">Email</th>
               <th scope="col">CPF</th>
               <th scope="col">Ação</th>
-
             </tr>
           </thead>
           <tbody>
             <tr v-if="users.length === 0">
               <th scope="row" colspan="6">Loading...</th>
             </tr>
-            <tr v-else v-for="(user, index) in users" :key="user.id">
+            <tr v-else v-for="user in users" :key="user.id">
               <th scope="row">{{ user.id }}</th>
               <td>{{ user.nome }}</td>
-              <td>{{ user.telefone }}</td>
-              <td>{{ user.nascimento }}</td>
+              <td>{{ formatTelefone(user.telefone) }}</td>
+              <td>{{ formatNascimento(user.nascimento.date) }}</td>
               <td>{{ user.email }}</td>
-              <td>{{ user.cpf }}</td>
-
+              <td>{{ formatCPF(user.cpf) }}</td>
               <td>
                 <button class="btn btn-danger btn-sm" @click="deleteUser(user.id)">Delete</button>
               </td>
@@ -51,127 +45,183 @@
         </table>
       </div>
     </div>
-  </div>
+
+    <!-- MODAL -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="userModalLabel">Criar Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="createUser">
+              <div class="mb-3">
+                <label class="form-label">Nome</label>
+                <input type="text" class="form-control" v-model="newUser.nome" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Telefone</label>
+                <input v-mask="'(##) #####-####'" v-model="newUser.telefone" placeholder="(00) 00000-0000" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">CPF</label>
+                <input type="text" class="form-control" v-model="newUser.cpf" v-mask="'###.###.###-##'" placeholder="000.000.000-00"required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Nascimento</label>
+                <input type="date" class="form-control" v-model="newUser.nascimento" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" v-model="newUser.email" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Senha</label>
+                <input type="password" class="form-control" v-model="newUser.senha" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Repetir Senha</label>
+                <input type="password" class="form-control" v-model="newUser.repetirSenha" required>
+              </div>
+              <button type="submit" class="btn btn-primary ">Inserir</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </template>
 
 <script>
-import Swal from 'sweetalert2';
 import axios from 'axios';
-
-function formatTelefone(telefone) {
-  return telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
-}
-
-function formatCPF(cpf) {
-  return cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
-}
-
-function formatNascimento(nascimento) {
-  return nascimento.split(' ')[0].split('-').reverse().join('/');
-}
-
-
+import Swal from 'sweetalert2';
 
 export default {
   data() {
     return {
       users: [],
+      newUser: {
+        nome: '',
+        telefone: '',
+        cpf: '',
+        nascimento: '',
+        email: '',
+        senha: '',
+        repetirSenha: ''
+      }
     };
   },
   methods: {
-
     async fetchUsers() {
       try {
         const response = await axios.get('http://localhost:8000/api/usuarios');
-
-        this.users = response.data.map(user => ({
-          id: user.id,
-          nome: user.nome,
-          telefone: user.telefone ? formatTelefone(user.telefone) : '',
-          cpf: user.cpf ? formatCPF(user.cpf) : '',
-          nascimento: user.nascimento && user.nascimento.date
-            ? formatNascimento(user.nascimento.date)
-            : '',
-          email: user.email,
-        }));
-
-
+        this.users = response.data;
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
       }
     },
+    
+    async createUser() {
+      if (this.newUser.senha !== this.newUser.repetirSenha) {
+        
+        await Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'As senhas não coincidem!',
+        });
+        return;
+      }
 
-    showUserCreateBox() {
-      Swal.fire({
-        title: 'Criar Usuário', 
-        html: `
-            <div class="form-group">
-                <input id="nome" class="swal2-input" placeholder="Nome">
-                <input id="telefone" class="swal2-input" placeholder="Telefone" type="tel">
-                <input id="cpf" class="swal2-input" placeholder="CPF" type="text">
-                <input id="nascimento" class="swal2-input" placeholder="Nascimento (DD MM AAAA)" type="text">
-                <input id="email" class="swal2-input" placeholder="Email" type="email">
-                <input id="senha" class="swal2-input" placeholder="Senha" type="password">
-                <input id="repetirSenha" class="swal2-input" placeholder="Repetir Senha" type="password">
-            </div>
-        `,
-        focusConfirm: false, 
-        confirmButtonText: 'Inserir',  
-        cancelButtonText: 'Cancelar', 
-        preConfirm: () => {
-          const nome = document.getElementById('nome').value;
-          const telefone = document.getElementById('telefone').value;
-          const cpf = document.getElementById('cpf').value;
-          const nascimento = document.getElementById('nascimento').value;
-          const email = document.getElementById('email').value;
-          const senha = document.getElementById('senha').value;
-          const repetirSenha = document.getElementById('repetirSenha').value;
-
-          if (!nome || !telefone || !cpf || !nascimento || !email || !senha || !repetirSenha) {
-            Swal.showValidationMessage('Todos os campos são obrigatórios!');
-            return false;
+      try {
+        await axios.post('http://localhost:8000/api/usuario', this.newUser, {
+          headers: {
+            'Content-Type': 'application/json' 
           }
+        });
 
-          if (senha !== repetirSenha) {
-            Swal.showValidationMessage('As senhas não coincidem!');
-            return false;
-          }
+        await Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: 'Usuário criado com sucesso!',
+        });
 
-          return {
-            nome,
-            telefone,
-            cpf,
-            nascimento,
-            email,
-            senha
-          };
-        }
-      }).then(result => {
-        if (result.isConfirmed) {
-          axios.post('http://localhost:8000/api/usuario', {
-            nome: result.value.nome,
-            telefone: result.value.telefone,
-            cpf: result.value.cpf,
-            nascimento: result.value.nascimento,
-            email: result.value.email,
-            senha: result.value.senha,
-          })
-            .then(response => {
-              Swal.fire('Sucesso!', 'Usuário criado com sucesso!', 'success');
-            })
-            .catch(error => {
-              console.error('Erro ao criar usuário:', error);
-              Swal.fire('Erro!', 'Não foi possível criar o usuário.', 'error');
-            });
-        }
+        this.fetchUsers();
+        this.resetForm();
+      } catch (error) {
+        console.error('Erro ao criar usuário:', error);
+
+        await Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'Erro ao criar usuário.',
+        });
+      }
+    },
+
+    async deleteUser(id) {
+      const result = await Swal.fire({
+        title: "Você tem certeza?",
+        text: "Você não poderá reverter essa ação!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sim, excluir!",
+        cancelButtonText: "Cancelar"
       });
-    }
-    ,
-    deleteUser(id) {
-      this.users = this.users.filter(user => user.id !== id);
-      Swal.fire('Deleted!', 'User has been deleted.', 'success');
-    }
+
+      if(result.isConfirmed){
+        try{
+          await axios.delete(`http://localhost:8000/api/usuario/${id}`);
+
+          await Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+            text: 'Usuário excluido com sucesso!',
+          });
+
+          this.fetchUsers();
+        }catch(error){
+          console.log('Erro ao excluir usuário: ', error);
+
+          await Swal.fire({
+            icon: 'error',
+            title: 'Erro',
+            text: 'Erro ao excluir usuário',
+          })
+
+        }
+      }
+    },
+
+    resetForm() {
+      this.newUser = {
+        nome: '',
+        telefone: '',
+        cpf: '',
+        nascimento: '',
+        email: '',
+        senha: '',
+        repetirSenha: ''
+      };
+    },
+    formatCPF(cpf) {
+      if (!cpf) return '';
+      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    },
+
+    formatTelefone(telefone) {
+      if (!telefone) return '';
+      return telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    },
+
+    formatNascimento(data) {
+      if (!data) return '';
+      return data.split(' ')[0].split('-').reverse().join('/');
+    },
   },
+  
   mounted() {
     this.fetchUsers();
   }
@@ -179,7 +229,5 @@ export default {
 </script>
 
 <style>
-.bg-mynav {
-  background-color: #343a40;
-}
+
 </style>

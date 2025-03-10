@@ -1,20 +1,19 @@
 <template>
   <div>
+    <Navbar />
     <router-view></router-view>
   </div>
 </template>
 
 <script>
+import Navbar from './Navbar.vue';
+
 export default {
+  components:{
+    Navbar
+  },
   name: "App",
 };
 </script>
 
-<style>
-nav {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  background-color: #f0f0f0;
-}
-</style>
+

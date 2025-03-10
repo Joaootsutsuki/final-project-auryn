@@ -36,7 +36,7 @@ class UserController extends AbstractController
             return $this->json(['erro' => 'Todos os campos são obrigatórios'], 400);
         }
 
-        $dataNascimento = \DateTime::createFromFormat('d/m/Y', $dados['nascimento']);
+        $dataNascimento = \DateTime::createFromFormat('Y-m-d', $dados['nascimento']);
 
         $usuario = new User();
         $usuario->setNome($dados['nome']);
