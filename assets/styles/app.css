@@ -1,5 +1,6 @@
 .navbar {
     justify-content: center !important;
+    background-color: white !important;
 }
 
 .navbar .navbar-nav {
@@ -13,8 +14,6 @@
 main.home, main.not-found{
     height: 90vh;
 }
-
-
 
 .home-box > * {
     margin: 0 0 20px 0 !important;

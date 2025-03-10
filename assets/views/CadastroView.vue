@@ -66,7 +66,9 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">CPF</label>
-                <input type="text" class="form-control" v-model="newUser.cpf" v-mask="'###.###.###-##'" placeholder="000.000.000-00"required>
+                
+                <input type="text" class="form-control" v-model="newUser.cpf" v-mask="'###.###.###-##'" placeholder="000.000.000-00" required >
+
               </div>
               <div class="mb-3">
                 <label class="form-label">Nascimento</label>
@@ -123,8 +125,30 @@ export default {
     },
     
     async createUser() {
+
+      const telefoneSemMascara = this.newUser.telefone.replace(/\D/g, ''); 
+      const cpfSemMascara = this.newUser.cpf.replace(/\D/g, '');
+
+      if (telefoneSemMascara.length !== 11) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'O telefone deve ter 11 dígitos!',
+        });
+        return;
+      }
+
+      if (cpfSemMascara.length !== 11) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Erro',
+          text: 'O CPF deve ter 11 dígitos!',
+        });
+        return;
+      }
+
       if (this.newUser.senha !== this.newUser.repetirSenha) {
-        
+
         await Swal.fire({
           icon: 'error',
           title: 'Erro',
