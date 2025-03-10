@@ -8,11 +8,10 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class IndexController extends AbstractController
 {
-    #[Route('/home', name: 'home')]
+    #[Route('/{vueRoute}', name: 'app_vue', requirements: ['vueRoute' => '^(?!api).*$'], defaults: ['vueRoute' => null])]
     public function index(): Response
     {
-        return $this->render('home/index.html.twig', [
-            'controller_name' => 'IndexController',
-        ]);
+        return $this->render('base.html.twig'); 
     }
+    
 }
